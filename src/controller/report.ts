@@ -86,17 +86,21 @@ class ReportComponent {
             item: I_RequestTodo,
             index: number
         ) => {
+            var statuses = item.status;
+            if(!(statuses in ['Pending','Finished','Postponed'])){
+                statuses='Postponed'
+            }
             const itemNewSubReport: I_SubUserToDoReport = {
                 _r: reportId,
                 date: new Date,
-                status: item.status
+                status: statuses
             }
             const itemNewTodo: I_UserToDo = {
                 _id: new ObjectId,
                 _u: userId,
                 cid: item.id,
                 content: item.content,
-                status: item.status,
+                status: statuses,
                 report: [
                     itemNewSubReport
                 ]
@@ -108,17 +112,21 @@ class ReportComponent {
             S_UserToDo
         ).insertMany(saveNewTodo)
         oldTodo.map(async (item: I_RequestTodo, index: number) => {
+            var statuses = item.status;
+            if(!(statuses in ['Pending','Finished','Postponed'])){
+                statuses='Postponed'
+            }
             const itemNewSubReport: I_SubUserToDoReport = {
                 _r: reportId,
                 date: new Date,
-                status: item.status
+                status: statuses
             }
             model('todo', S_UserToDo).findOneAndUpdate(
                 { cid: item.id },
                 [{
                     '$set': {
                         content: item.content,
-                        status: item.status,
+                        status: statuses,
                         report: {
                             '$concatArrays': [
                                 '$report',
