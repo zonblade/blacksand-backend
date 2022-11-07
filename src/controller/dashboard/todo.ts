@@ -1,6 +1,6 @@
 import { Request } from "express";
 import { model } from "mongoose";
-import { S_UserToDo } from "../../models";
+import { S_UserReport, S_UserToDo } from "../../models";
 import { authRequired, httpHandler } from "../../decorator";
 import { jwtdecode } from "../../helper/jwt";
 
@@ -45,8 +45,62 @@ export default class TodoComponent {
                 }
             }
         ])
+        const resultReport: Array<any> = await model('report', S_UserReport).aggregate([
+            {'$match':{
+                '_u': userId
+            }},
+            {'$project':{
+                'date': {
+                    '$dateToString': {
+                        'date': { '$toDate': '$_id' },
+                        'format': '%Y-%m-%d'
+                    }
+                }
+            }},
+            {'$facet':{'dateReport':[]}},
+            {'$addFields':{
+                'today': {
+                    '$dateToString': {
+                        'date': new Date,
+                        'format': '%Y-%m-%d'
+                    }
+                }
+            }},
+            {'$project':{
+                'hasToday':{
+                    '$cond':{
+                        'if':{'$gt':[
+                            {'$sum':{
+                                '$map':{
+                                    'input':'$dateReport',
+                                    'in':{
+                                        '$cond':{
+                                            'if'  :{'$eq':['$$this.date','$today']},
+                                            'then':{'$toInt':1},
+                                            'else':{'$toInt':0}
+                                        }
+                                    }
+                                }
+                            }},
+                            0
+                        ]},
+                        'then':{'$toBool':true},
+                        'else':{'$toBool':false}
+                    }
+                }
+            }}
+        ])
         const result = dbResult ? dbResult : []
-        return result
+        var hasToday=false;
+        if(resultReport.length>0){
+            if(resultReport[0].hasToday === true){
+                hasToday=true;
+            }
+        }
+        return {
+            today:hasToday,
+            todo:result
+        }
     }
 
     @httpHandler
