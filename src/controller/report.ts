@@ -87,7 +87,7 @@ class ReportComponent {
             index: number
         ) => {
             var statuses = item.status;
-            if(!(statuses in ['Pending','Finished','Postponed'])){
+            if(!['Pending','Finished','Postponed'].includes(statuses)){
                 statuses='Postponed'
             }
             const itemNewSubReport: I_SubUserToDoReport = {
@@ -113,7 +113,7 @@ class ReportComponent {
         ).insertMany(saveNewTodo)
         oldTodo.map(async (item: I_RequestTodo, index: number) => {
             var statuses = item.status;
-            if(!(statuses in ['Pending','Finished','Postponed'])){
+            if(!['Pending','Finished','Postponed'].includes(statuses)){
                 statuses='Postponed'
             }
             const itemNewSubReport: I_SubUserToDoReport = {
